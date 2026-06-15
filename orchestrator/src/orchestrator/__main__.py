@@ -13,6 +13,7 @@ import logging
 from .config import OrchestratorConfig
 from .modules import ModuleManager
 from .mqtt_bridge import MqttBridge
+from .ota import FirmwareServer
 
 
 async def _heartbeat(manager: ModuleManager) -> None:
@@ -26,7 +27,14 @@ async def _heartbeat(manager: ModuleManager) -> None:
 async def _run(config: OrchestratorConfig) -> None:
     manager = ModuleManager(offline_after_s=config.module_offline_s)
     bridge = MqttBridge(config.broker, manager)
-    await asyncio.gather(bridge.run(), _heartbeat(manager))
+    fw_server = FirmwareServer(config.ota)
+    await fw_server.start()
+    # OTA rollouts are operator-triggered (UI / tools/ota-rollout.py) via
+    # OtaManager; the server just needs to be up so modules can pull images.
+    try:
+        await asyncio.gather(bridge.run(), _heartbeat(manager))
+    finally:
+        await fw_server.stop()
 
 
 def main() -> None:

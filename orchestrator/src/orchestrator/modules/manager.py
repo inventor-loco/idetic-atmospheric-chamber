@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 
-from ..models import Fault, ModuleSnapshot, Status, Temps
+from ..models import Fault, ModuleSnapshot, OtaStatus, Status, Temps
 from ..topics import MODULE_IDS
 
 
@@ -32,6 +32,14 @@ class ModuleManager:
     def update_fault(self, module_id: str, fault: Fault) -> None:
         self._modules[module_id].last_fault = fault
         self._touch(module_id)
+
+    def update_ota(self, module_id: str, ota: OtaStatus) -> None:
+        self._modules[module_id].last_ota = ota
+        self._touch(module_id)
+
+    def reset_ota(self, module_id: str) -> None:
+        """Clear the last OTA result before starting a fresh rollout."""
+        self._modules[module_id].last_ota = None
 
     def _touch(self, module_id: str) -> None:
         self._last_seen[module_id] = time.monotonic()

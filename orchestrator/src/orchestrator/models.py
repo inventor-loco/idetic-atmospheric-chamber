@@ -32,6 +32,7 @@ class Status(BaseModel):
     fan: bool
     uptime_s: int
     rssi: int
+    fw: str | None = None   # running firmware version; confirms OTA result
 
 
 class Fault(BaseModel):
@@ -68,6 +69,29 @@ class ConfigCmd(BaseModel):
     limits: dict[str, float] = Field(default_factory=dict)
 
 
+OtaPhase = Literal[
+    "STARTED", "DOWNLOADING", "SUCCESS", "FAILED", "REJECTED",
+]
+
+
+class OtaCmd(BaseModel):
+    """`chamber/m{N}/cmd/ota` payload — the image for a module to pull."""
+
+    url: str
+    version: str
+    md5: str
+    size: int
+
+
+class OtaStatus(BaseModel):
+    """`chamber/m{N}/ota` payload — progress/result reported by the module."""
+
+    phase: OtaPhase
+    progress: int = 0           # 0..100
+    version: str = ""           # target version of the in-flight update
+    error: str | None = None
+
+
 class ModuleSnapshot(BaseModel):
     """Last-known full state of one module, held in memory by the manager."""
 
@@ -75,4 +99,9 @@ class ModuleSnapshot(BaseModel):
     temps: Temps | None = None
     status: Status | None = None
     last_fault: Fault | None = None
+    last_ota: OtaStatus | None = None
     online: bool = False
+
+    @property
+    def fw(self) -> str | None:
+        return self.status.fw if self.status else None

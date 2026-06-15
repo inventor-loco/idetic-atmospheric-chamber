@@ -21,6 +21,11 @@ def fault(module_id: str) -> str:
     return f"chamber/{module_id}/fault"
 
 
+def ota(module_id: str) -> str:
+    """OTA progress/result reported by the module."""
+    return f"chamber/{module_id}/ota"
+
+
 # --- Pi -> ESP32 (commands) --------------------------------------------------
 def cmd_setpoint(module_id: str) -> str:
     return f"chamber/{module_id}/cmd/setpoint"
@@ -40,6 +45,12 @@ def cmd_stop(module_id: str) -> str:
 
 def cmd_config(module_id: str) -> str:
     return f"chamber/{module_id}/cmd/config"
+
+
+def cmd_ota(module_id: str) -> str:
+    """Trigger an OTA pull. No broadcast equivalent — OTA rolls out per module,
+    sequentially, so a bad image can never brick all five at once."""
+    return f"chamber/{module_id}/cmd/ota"
 
 
 # --- Broadcast ---------------------------------------------------------------

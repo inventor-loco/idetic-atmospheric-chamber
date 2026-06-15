@@ -17,6 +17,8 @@ from .models import (
     ConfigCmd,
     FanCmd,
     Fault,
+    OtaCmd,
+    OtaStatus,
     PurgeCmd,
     Setpoint,
     Status,
@@ -66,6 +68,8 @@ class MqttBridge:
             self._manager.update_status(module_id, Status(**data))
         elif kind == "fault":
             self._manager.update_fault(module_id, Fault(**data))
+        elif kind == "ota":
+            self._manager.update_ota(module_id, OtaStatus(**data))
 
     # --- command publishers --------------------------------------------------
     async def _publish(self, topic: str, payload: dict) -> None:
@@ -88,6 +92,9 @@ class MqttBridge:
 
     async def stop(self, module_id: str) -> None:
         await self._publish(topics.cmd_stop(module_id), {})
+
+    async def send_ota(self, module_id: str, cmd: OtaCmd) -> None:
+        await self._publish(topics.cmd_ota(module_id), cmd.model_dump())
 
     async def stop_all(self) -> None:
         """Broadcast emergency stop to every module (PROJECT_SEED §7.3)."""

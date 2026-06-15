@@ -14,17 +14,31 @@
 #include "fan.h"
 #include "safety.h"
 #include "mqtt_client.h"
+#include "ota.h"
 
 namespace {
 Sensors    sensors;
 Heater     heater;
 Fan        fan;
 MqttClient mqtt;
+Ota        ota;
 
 State    state = State::IDLE;
 uint32_t last_control_ms = 0;
 uint32_t purge_until_ms  = 0;
 uint32_t settle_until_ms = 0;
+
+// OTA is handled in the main loop (never inside the MQTT callback): the command
+// only stages a request, which loop() runs once the heater is confirmed off.
+bool     ota_pending = false;
+Command  ota_req;
+
+// OTA is permitted only in states where the heater is already off. It is
+// refused while heating/purging so an update can never interrupt a live heater.
+bool otaAllowed(State s) {
+  return s == State::IDLE || s == State::SAFE_OFF ||
+         s == State::READY || s == State::FAULT;
+}
 
 void enterSafeOff(const char* reason) {
   heater.cutoff();
@@ -60,6 +74,15 @@ void onCommand(const Command& c) {
     case Command::CONFIG:
       heater.setGains({c.kp, c.ki, c.kd});
       break;
+    case Command::OTA:
+      if (otaAllowed(state)) {
+        heater.cutoff();          // belt-and-braces before staging the update
+        ota_req = c;
+        ota_pending = true;
+      } else {
+        mqtt.publishOta("REJECTED", 0, "unsafe_state", c.ota_version.c_str());
+      }
+      break;
     default:
       break;
   }
@@ -75,12 +98,26 @@ void setup() {
   heater.begin();   // forces duty 0 (hardware pulldown guarantees boot-safe)
   fan.begin();
   mqtt.begin(onCommand);
+  ota.begin([](const char* phase, int progress, const char* err) {
+    mqtt.publishOta(phase, progress, err, ota_req.ota_version.c_str());
+  });
 
   Serial.printf("chamber module %s fw %s booted\n", MODULE_ID, CHAMBER_FW_VERSION);
 }
 
 void loop() {
   mqtt.loop();
+
+  // Staged OTA runs here, outside the MQTT callback. ota.run() blocks while it
+  // streams the image and reboots on success; on failure we stay in SAFE_OFF on
+  // the current firmware. Heater is already cut (onCommand + here).
+  if (ota_pending) {
+    ota_pending = false;
+    heater.cutoff();
+    state = State::SAFE_OFF;
+    ota.run(ota_req.ota_url, ota_req.ota_md5, ota_req.ota_size);
+    return;
+  }
 
   const uint32_t now = millis();
   if (now - last_control_ms < CONTROL_PERIOD_MS) return;

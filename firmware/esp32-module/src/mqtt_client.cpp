@@ -31,6 +31,12 @@ Command decode(const String& topic, const JsonDocument& doc) {
     c.kp = doc["pid"]["kp"] | 0.0f;
     c.ki = doc["pid"]["ki"] | 0.0f;
     c.kd = doc["pid"]["kd"] | 0.0f;
+  } else if (topic.endsWith("/cmd/ota")) {
+    c.type = Command::OTA;
+    c.ota_url     = String(doc["url"]     | "");
+    c.ota_md5     = String(doc["md5"]     | "");
+    c.ota_version = String(doc["version"] | "");
+    c.ota_size    = doc["size"] | 0;
   }
   return c;
 }
@@ -103,7 +109,8 @@ void MqttClient::publishStatus(const char* state, float pwm, bool fan,
   doc["fan"] = fan;
   doc["uptime_s"] = uptime_s;
   doc["rssi"] = rssi;
-  char buf[160];
+  doc["fw"] = CHAMBER_FW_VERSION;   // lets the orchestrator confirm OTA result
+  char buf[192];
   size_t n = serializeJson(doc, buf);
   String t = base() + "/status";
   mqtt.publish(t.c_str(), reinterpret_cast<uint8_t*>(buf), n, /*retain=*/true);
@@ -118,4 +125,19 @@ void MqttClient::publishFault(const char* code, float value, uint32_t ts) {
   size_t n = serializeJson(doc, buf);
   String t = base() + "/fault";
   mqtt.publish(t.c_str(), reinterpret_cast<uint8_t*>(buf), n, /*retain=*/false);
+}
+
+void MqttClient::publishOta(const char* phase, int progress, const char* err,
+                            const char* version) {
+  JsonDocument doc;
+  doc["phase"] = phase;
+  doc["progress"] = progress;
+  doc["version"] = version;
+  if (err && err[0]) doc["error"] = err;
+  char buf[192];
+  size_t n = serializeJson(doc, buf);
+  String t = base() + "/ota";
+  mqtt.publish(t.c_str(), reinterpret_cast<uint8_t*>(buf), n, /*retain=*/false);
+  // Push it out immediately — a reboot may follow right after SUCCESS.
+  mqtt.loop();
 }

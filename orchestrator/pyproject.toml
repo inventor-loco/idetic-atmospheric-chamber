@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 authors = [{ name = "IDeTIC / ULPGC" }]
 dependencies = [
     "aiomqtt>=2.0",        # async MQTT (paho wrapper)
+    "aiohttp>=3.9",        # firmware HTTP server for OTA image pulls
     "pydantic>=2.6",       # config + telemetry models
     "numpy>=1.26",         # Cn2 / structure-function math
     "h5py>=3.10",          # HDF5 logging
