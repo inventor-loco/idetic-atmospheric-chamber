@@ -1,0 +1,38 @@
+# --- Firmware (PlatformIO) ---
+.pio/
+firmware/**/.pio/
+firmware/esp32-module/secrets.ini      # credentials — never commit
+
+# --- Python / orchestrator ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# --- Data / logs (experiment output) ---
+data/
+*.h5
+*.hdf5
+*.csv
+*.log
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- KiCad / CAD backups ---
+*-bak
+*.kicad_pcb-bak
+*.kicad_sch-bak
+fp-info-cache
