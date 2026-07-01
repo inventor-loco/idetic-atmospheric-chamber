@@ -14,6 +14,9 @@ that degradation to a measured refractive-index structure constant **Cn²**.
 
 ---
 
+# Actividad de Laboratorio  Máster Green Tech IDeTIC (Asignatura de IoT)
+
+
 ## Architecture
 
 ![System architecture](docs/architecture.svg)

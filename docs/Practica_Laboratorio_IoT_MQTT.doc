@@ -1,0 +1,144 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>Práctica de Laboratorio: IoT - MQTT con ESP32 y Sensor de CO2</title>
+<style>
+body { font-family: Arial, sans-serif; }
+h1 { text-align: center; color: #2F5496; }
+h2 { color: #2F5496; border-bottom: 1px solid #2F5496; padding-bottom: 3px; }
+pre { background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-size: 9pt; }
+</style>
+</head>
+<body>
+<h1>Práctica de Laboratorio: IoT - MQTT con ESP32 y Sensor de CO2</h1>
+<h2 style="text-align: center;">Máster en Green Tech - IDeTIC</h2>
+
+<h2>1. Objetivos de la Práctica</h2>
+<ul>
+    <li>Configurar y programar un microcontrolador ESP32 utilizando el entorno de desarrollo Arduino IDE o PlatformIO.</li>
+    <li>Leer datos analógicos/digitales de un sensor genérico de CO2.</li>
+    <li>Establecer una conexión a una red Wi-Fi.</li>
+    <li>Implementar el protocolo MQTT para publicar los datos del sensor en un broker.</li>
+    <li>Fomentar el uso de tecnologías IoT aplicadas a la monitorización ambiental (Green Tech).</li>
+</ul>
+
+<h2>2. Materiales Requeridos</h2>
+<ul>
+    <li>1x Placa de desarrollo ESP32 (e.g., ESP32-WROOM-32).</li>
+    <li>1x Sensor genérico de CO2 (e.g., MQ-135 o equivalente analógico/digital).</li>
+    <li>Cables puente (jumper wires).</li>
+    <li>Protoboard.</li>
+    <li>Cable Micro-USB o USB-C para conexión al PC.</li>
+    <li>PC con Arduino IDE o VS Code con PlatformIO instalado.</li>
+</ul>
+
+<h2>3. Marco Teórico Breve</h2>
+<p><b>MQTT (Message Queuing Telemetry Transport):</b> Es un protocolo de mensajería ligero basado en el modelo publicación/suscripción. Es ideal para conexiones con dispositivos remotos donde el ancho de banda es premium y se requiere eficiencia (muy utilizado en IoT).</p>
+<p><b>ESP32:</b> Un microcontrolador de bajo costo y bajo consumo de energía con Wi-Fi y Bluetooth integrados, ideal para proyectos de IoT y Green Tech.</p>
+
+<h2>4. Esquema de Conexión</h2>
+<ol>
+    <li>Conecta el pin VCC (o 5V/3.3V, según tu sensor) del sensor de CO2 al pin de 5V o 3.3V del ESP32.</li>
+    <li>Conecta el pin GND del sensor al pin GND del ESP32.</li>
+    <li>Conecta la salida analógica (A0) del sensor al pin ADC correspondiente en el ESP32 (por ejemplo, el Pin 34).</li>
+</ol>
+
+<h2>5. Desarrollo de la Práctica</h2>
+<h3>Paso 5.1: Preparación del Entorno</h3>
+<p>Asegúrate de tener instaladas las bibliotecas <code>PubSubClient</code> (para MQTT) y <code>WiFi</code> en tu entorno de desarrollo.</p>
+
+<h3>Paso 5.2: Código Base</h3>
+<p>A continuación, se presenta un esquema de código básico que debes completar y cargar en tu ESP32:</p>
+<pre>
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+// Credenciales Wi-Fi
+const char* ssid = "TU_SSID";
+const char* password = "TU_PASSWORD";
+
+// Configuración MQTT
+const char* mqtt_server = "broker.hivemq.com"; // Broker público de prueba
+const int mqtt_port = 1883;
+const char* topic_co2 = "idetic/greentech/co2";
+
+// Pin del Sensor de CO2
+const int sensorPin = 34; // Pin ADC del ESP32
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup_wifi() {
+  delay(10);
+  Serial.println();
+  Serial.print("Conectando a ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi conectado.");
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Intentando conexión MQTT...");
+    if (client.connect("ESP32Client_GreenTech")) {
+      Serial.println("conectado");
+    } else {
+      Serial.print("falló, rc=");
+      Serial.print(client.state());
+      Serial.println(" intentando de nuevo en 5 segundos");
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  int sensorValue = analogRead(sensorPin);
+  // TODO: Transformar valor según datasheet del sensor a PPM.
+  
+  String payload = String(sensorValue);
+  Serial.print("Publicando nivel de CO2: ");
+  Serial.println(payload);
+  
+  client.publish(topic_co2, payload.c_str());
+  
+  delay(5000); // Esperar 5 segundos antes de la siguiente lectura
+}
+</pre>
+
+<h3>Paso 5.3: Visualización de Datos</h3>
+<ol>
+    <li>Descarga e instala un cliente MQTT, como MQTT Explorer o usa una herramienta web.</li>
+    <li>Conéctate al broker <code>broker.hivemq.com</code> en el puerto 1883.</li>
+    <li>Suscríbete al topic <code>idetic/greentech/co2</code>.</li>
+    <li>Observa cómo llegan los datos publicados por el ESP32 cada 5 segundos.</li>
+</ol>
+
+<h2>6. Tareas Propuestas (Para entregar)</h2>
+<ul>
+    <li><b>Calibración:</b> Modifica el código para aplicar una ecuación de conversión (basada en el datasheet del sensor) que transforme el valor analógico leído en partes por millón (ppm).</li>
+    <li><b>Formato JSON:</b> Cambia el formato de publicación a JSON, incluyendo al menos "sensor_id", "tipo" y "valor" (ej. <code>{"sensor_id": "esp32_01", "tipo": "CO2", "valor": 450}</code>).</li>
+    <li><b>Deep Sleep (Opcional - Green Tech extra):</b> Modifica el código para que el ESP32 publique un dato y entre en modo "Deep Sleep" durante 1 minuto para ahorrar energía antes de la siguiente lectura.</li>
+</ul>
+
+<h2>7. Conclusiones y Evaluación</h2>
+<p>Redacta un breve informe (máx. 1 página) detallando los problemas encontrados durante la conexión Wi-Fi/MQTT, cómo resolviste la conversión a ppm y el impacto del uso del modo de bajo consumo (si lo implementaste) en el contexto de la sostenibilidad tecnológica.</p>
+
+</body>
+</html>
