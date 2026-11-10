@@ -16,6 +16,15 @@ that degradation to a measured refractive-index structure constant **Cn²**.
 
 # Actividad de Laboratorio  Máster Green Tech IDeTIC (Asignatura de IoT)
 
+Prácticas de la asignatura **51535 Internet de las Cosas** (Máster Green Tech,
+IDeTIC-ULPGC, primer semestre 2026-27; Vicente Matus y José Alberto Rabadán):
+[`teaching/51535-iot/`](teaching/51535-iot/README.md).
+
+Son cinco sesiones de laboratorio, del ESP32 y un sensor de gas hasta un nodo
+con el mismo esquema MQTT, 1-Wire y fallo seguro que la cámara. El enunciado
+de una sola sesión (broker público) sigue en
+[`docs/Practica_Laboratorio_IoT_MQTT.doc`](docs/Practica_Laboratorio_IoT_MQTT.doc);
+`tools/generate_lab.py` solo regenera ese documento antiguo.
 
 ## Architecture
 
@@ -54,6 +63,8 @@ which talks **MQTT over WiFi** to a central **Raspberry Pi 5**:
 atmospheric-chamber/
 ├── PROJECT_SEED.md          ← authoritative project snapshot (read first)
 ├── README.md                ← this file
+├── teaching/
+│   └── 51535-iot/           ← prácticas de 51535 (código aparte del de la cámara)
 ├── docs/                    ← per-topic docs + architecture.svg + datasheets
 ├── firmware/
 │   └── esp32-module/        ← PlatformIO project (the MCU firmware)

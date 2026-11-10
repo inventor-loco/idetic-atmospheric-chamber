@@ -1,3 +1,10 @@
+"""Generador histórico del enunciado de una sola sesión (sensor de gas + MQTT público).
+
+La secuencia vigente de la asignatura 51535 está en ``teaching/51535-iot/``.
+Este script solo regenera el documento antiguo; no sustituye a las prácticas
+en Markdown.
+"""
+
 from docx import Document
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
