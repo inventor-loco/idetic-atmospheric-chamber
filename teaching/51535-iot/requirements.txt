@@ -1,0 +1,3 @@
+# Dependencia del modo en vivo de los scripts Python.
+# --dry-run solo usa la biblioteca estándar y no necesita este paquete.
+paho-mqtt>=2.1.0

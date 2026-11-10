@@ -31,6 +31,9 @@ data/
 .DS_Store
 Thumbs.db
 
+# Teaching labs — WiFi credentials (copy teaching/51535-iot/secrets.h.example)
+teaching/**/secrets.h
+
 # --- KiCad / CAD backups ---
 *-bak
 *.kicad_pcb-bak

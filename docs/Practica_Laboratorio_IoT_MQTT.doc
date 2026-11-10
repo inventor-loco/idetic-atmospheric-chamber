@@ -15,6 +15,12 @@ pre { background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; font-fam
 <h1>Práctica de Laboratorio: IoT - MQTT con ESP32 y Sensor de CO2</h1>
 <h2 style="text-align: center;">Máster en Green Tech - IDeTIC</h2>
 
+<p><b>Nota:</b> este enunciado queda como referencia de una sola sesión.
+La secuencia vigente de la asignatura 51535 está en
+<code>teaching/51535-iot/</code>. La puesta en marcha y la conversión a ppm
+pasan a la práctica 1, MQTT a un broker local pasa a la práctica 2, y el
+deep sleep pasa a la práctica 5.</p>
+
 <h2>1. Objetivos de la Práctica</h2>
 <ul>
     <li>Configurar y programar un microcontrolador ESP32 utilizando el entorno de desarrollo Arduino IDE o PlatformIO.</li>
